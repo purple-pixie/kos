@@ -16,11 +16,11 @@ function bodyprops {
     }
     if b = "Mun" {
         set ha to 0.
-        set lorb to 14000. 
+        set lorb to 14000.
     }
     if b = "Minmus" {
         set ha to 0.
-        set lorb to 10000. 
+        set lorb to 10000.
     }
     if lorb = 0 {
         output(" Warning: no body properties for " + b + "!").
@@ -33,7 +33,8 @@ function bodyprops {
 function speed_at {
     parameter r. // radius (height)
     parameter a. //semi-major axis
-    return sqrt( body:mu * (2/r - 1/a ) ).
+    parameter bod is kerbin.
+    return sqrt( bod:mu * (2/r - 1/a ) ).
 }
 
 //Find Eccentric given True Anomaly.
@@ -63,18 +64,14 @@ function MeanAnom_from_EccAnom{
     return  E - constant:radtodeg*ec*sin(E).
 }
 
-// function MeanAnom_from_EccAnom{
-    // declare parameter ec.   //eccentricity
-    // declare parameter E.    //Eccentric Anomaly
-    // return MeanAnom_from_EccAnom_rad(ec, E) * constant:radtodeg.
-// }
 //eta to a given True Anomaly.
-//will always be positive (i.e. will return the instance from the next orbit 
+//will always be positive (i.e. will return the instance from the next orbit
 // if this orbit's has already passed).
 function eta_to_TrueAnom {
     declare parameter orbit_in.
     declare parameter t. // True Anomaly in degrees
-    local dt is pe_to_TrueAnom(orbit_in, t) - pe_to_TrueAnom(orbit_in, orbit_in:TrueAnomaly) .
+    local dt is pe_to_TrueAnom(orbit_in, t) -
+      pe_to_TrueAnom(orbit_in, orbit_in:TrueAnomaly) .
     if (dt < 0) { set dt to orbit_in:period + dt. }
     return dt.
 }
@@ -88,7 +85,51 @@ function pe_to_TrueAnom {
     return MeanAnom * orbit_in:period / 360.
 }
 
+function alt_from_trueanom {
+  parameter orbit_in.
+  parameter t. //trueanomaly
+  //  r = a . (1-e^2)/(1 + e.cos(T)
+  return orbit_in:semimajoraxis * (1-orbit_in:eccentricity^2) / (1 + orbit_in:eccentricity * cos(t)).
+}
+
 function orbit_normal {
     declare parameter orbit_in.
     return vcrs(orbit_in:position - body:position, orbit_in:velocity:orbit):normalized.
+}
+
+//raise or lower and rotate radially orbit at the given TrueAnomaly
+//such that one of the new apsides is at this trueanomaly
+//and the other is at the specified altitude.
+//argument of periapsis will be less accurate for small changes relative
+//to the starting orbit
+function set_apoapsis_at_trueanom {
+  parameter vessel_1, desired_apo, ta.
+
+  //note that the "_pe" suffix refers to the location of the burn
+  //not guranateed to be at an apsis
+  local ut_at_pe is time:seconds+eta_to_trueanom(vessel_1:obt, ta).
+  local pe_pos is positionat(vessel_1, ut_at_pe).
+  //the altitude vector. handily contains altitiude and the radial vector
+  local pe_alt_vec is pe_pos - body:position.
+  local pe_alt is pe_alt_vec:mag.
+  local pe_vel is velocityat(vessel_1, ut_at_pe):orbit.
+
+  local desired_prograde_dir is vcrs(orbit_normal(vessel_1:obt), pe_alt_vec).
+  local desired_sma is vessel_1:body:radius/2+(pe_alt + desired_apo)/2.
+  // print "Semi-Major Axes:".
+  // print "current: " + vessel_1:obt:semimajoraxis.
+  // print "orbit_2: " + orbitable_2:obt:semimajoraxis.
+  // print "desired: " + desired_sma.
+  local desired_mag is sqrt(vessel_1:body:mu * (2/pe_alt - 1/desired_sma)).
+  local desired_vector is desired_prograde_dir:normalized * desired_mag.
+  local burn_dv is (desired_vector-pe_vel).
+  local burn_mag is burn_dv:mag.
+  local prograde_burn is burn_mag * cos(vang(burn_dv, pe_vel)).
+  local radial_burn is burn_mag * cos(90-vang(burn_dv, pe_vel)).
+  local nd is node(ut_at_pe,radial_burn,0,prograde_burn).
+
+  // print "burn_mag (calc): " + burn_mag.
+  //615.8 desired prograde_burn
+  //903 reported
+  return nd.
 }

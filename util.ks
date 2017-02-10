@@ -24,17 +24,23 @@ function circularise {
     //circularise orbit at apoapse, or if at_pe is true at periapse.
     parameter at_pe is false.
     if at_pe {
-         SET current to velocityat(ship,time+eta:periapsis). 
-         SET desired to sqrt(kerbin:mu / ship:periapsis+kerbin:radius). 
+         SET current to velocityat(ship,time+eta:periapsis).
+         SET desired to sqrt(kerbin:mu / ship:periapsis+kerbin:radius).
          set nd to Node(time:seconds+eta:periapsis, 0, 0, desired-current).
      }
      else
      {
          SET current to velocityat(ship,time+eta:apoapsis). // sqrt(kerbin:mu * (2/AP - 1/ship:obt:semimajoraxis)).
-         SET desired to sqrt(kerbin:mu / ship:apoapsis+kerbin:radius). 
+         SET desired to sqrt(kerbin:mu / ship:apoapsis+kerbin:radius).
          set nd to Node(time:seconds+eta:apoapsis, 0, 0, desired-current).
      }
      add nd.
+}
+
+function total_planned_dv {
+  local sum is 0.
+  for nd in allnodes { set sum to sum + nd:deltav:mag. }
+  return sum.
 }
 
 function warp_until {
@@ -42,9 +48,9 @@ function warp_until {
     parameter endtime.
     parameter notes is "".
     if addons:available("KAC") {
-        set dt to endtime - time:seconds.
-        set alarm to ADDALARM("Raw",endtime,"kOS maneuver alarm", notes).
-        set wp to 1.
+        local dt is endtime - time:seconds.
+        local alarm is ADDALARM("Raw",endtime,"kOS maneuver alarm", notes).
+        local wp is 1.
         if dt > 5      { set wp to 2. }
         if dt > 30     { set wp to 3. }
         if dt > 100    { set wp to 4 .}

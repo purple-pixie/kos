@@ -1,5 +1,6 @@
 // utilities useful for a launching vessel.
 // primarily staging related
+global active is list().
 
 function do_stage {
     // stage and set up active engine list for flameout checks
@@ -10,8 +11,8 @@ function do_stage {
     set active to list().
     FROM {set i to 0.} UNTIL i = inactive:length STEP {set i to i+1.} DO {
         set en to inactive[i].
-        if en:ignition { 
-            inactive:remove(i). 
+        if en:ignition {
+            inactive:remove(i).
             set i to i-1.
             active:add(e).
         }
@@ -30,12 +31,15 @@ function check_stage {
 function auto_stage {
     // performs initial staging and monitors engines for flameout.
     // stages whenever an engine flames out.
-    print "Launch!".
-    do_stage().
+    parameter launch is false.
+    if launch {
+      print "Launch!".
+      do_stage().
+    }
     lock staging to check_stage().
     when staging then {
-        do_stage. 
-        if inactive:length {preserve.} 
+        do_stage.
+        if inactive:length {preserve.}
     }
 }
 

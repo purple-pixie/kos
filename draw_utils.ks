@@ -8,10 +8,10 @@ local line_length is 100000.
 
 // global pos_delegate is 0.
 // global line_delegate is 0.
-function draw_trueanom {
-    //assumes ship's orbit, else the vectors would be all messed up and I'm not doing that math
-    parameter t. // true anomaly 
-    print "deprecated | draw_trueanom".
+function draw_ship_at_trueanom {
+    parameter vessel_1.
+    parameter t. // true anomaly
+    draw_ship_at(vessel_1, time+eta_to_trueanom(vessel_1:obt, t)).
 }
 
 function do_draw {
@@ -26,9 +26,9 @@ function do_draw {
     set newvec[0]:vec to line.
     set newvec[0]:show to true.
    draw_vectors:add(newvec).
-    if draw_draw { 
+    if draw_draw {
         //already drawing, return
-        return. 
+        return.
     }
     set draw_draw to true.
     //set up re-draw trigger, it will stop when draw_stop_drawing gets called (or the script stops)
@@ -51,12 +51,13 @@ function draw_stop_drawing {
 
 function draw_ship_at {
     //draws prograde, radial and normal vectors at the ship's position at the given time
+    parameter vessel_1.
     parameter ut.
-    local pos_func is { return positionat(ship, ut) - positionat(ship, time). }.
-    local pos_at_ut is positionat(ship, ut). 
-    local prograde_at_ut is velocityat(ship, ut):orbit.
-    local normal_at_ut is (vcrs(prograde_at_ut, pos_at_ut-body:position)).
-    local radial_at_ut is (pos_at_ut-body:position).
+    local pos_func is { return positionat(vessel_1, ut) - positionat(ship, time). }.
+    local pos_at_ut is positionat(vessel_1, ut).
+    local prograde_at_ut is velocityat(vessel_1, ut):orbit.
+    local normal_at_ut is (vcrs(prograde_at_ut, pos_at_ut-vessel_1:body:position)).
+    local radial_at_ut is (pos_at_ut-vessel_1:body:position).
     draw_line(pos_func,  prograde_at_ut, yellow, "prograde").
     draw_line(pos_func, normal_at_ut, purple, "normal").
     draw_line(pos_func, radial_at_ut, blue, "radial").
@@ -69,7 +70,7 @@ function draw_line {
     parameter line.
     parameter color is red.
     parameter text is "line".
-    if line:istype("UserDelegate") { 
+    if line:istype("UserDelegate") {
         draw_delegates(pos, { return line:call():normalized*line_length.}, color, text).
         }
     else {
