@@ -40,7 +40,7 @@ WHEN SHIP:ALTITUDE > 1000 THEN {
             LOCK dthrott TO 0.05 * (4.0 - gforce).
 
             // go full on thrust at 30km
-            // note this might be after 
+            // note this might be after
             WHEN SHIP:ALTITUDE > 30000 THEN {
                 unlock dthrott.
                 unlock THROTTLE.
@@ -70,5 +70,5 @@ SET THROTTLE TO 0.
 // add maneuver to circularise
 add circularise().
 //effect maneuver
-run pilot().
+run pilot(true).
 //done?

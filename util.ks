@@ -23,15 +23,16 @@ function error {
 function circularise {
     //circularise orbit at apoapse, or if at_pe is true at periapse.
     parameter at_pe is false.
+    local nd is 0.
     if at_pe {
-         SET current to velocityat(ship,time+eta:periapsis).
-         SET desired to sqrt(kerbin:mu / ship:periapsis+kerbin:radius).
+         local current is velocityat(ship,time+eta:periapsis):orbit:mag.
+         local desired is sqrt(kerbin:mu / ship:periapsis+kerbin:radius).
          set nd to Node(time:seconds+eta:periapsis, 0, 0, desired-current).
      }
      else
      {
-         SET current to velocityat(ship,time+eta:apoapsis). // sqrt(kerbin:mu * (2/AP - 1/ship:obt:semimajoraxis)).
-         SET desired to sqrt(kerbin:mu / ship:apoapsis+kerbin:radius).
+         local current is velocityat(ship,time+eta:apoapsis):orbit:mag. // sqrt(kerbin:mu * (2/AP - 1/ship:obt:semimajoraxis)).
+         local desired is sqrt(kerbin:mu / ship:apoapsis+kerbin:radius).
          set nd to Node(time:seconds+eta:apoapsis, 0, 0, desired-current).
      }
      add nd.
@@ -58,7 +59,7 @@ function warp_until {
         if dt > 10000  { set wp to 6. }
         if dt > 100000 { set wp to 7. }
         set warp to wp.
-        wait until alarm:remaining < 5.
+        wait until alarm:remaining < 2.
         set warp to 0.
         deletealarm(alarm:id).
     }

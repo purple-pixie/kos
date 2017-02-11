@@ -5,8 +5,11 @@ global active is list().
 function do_stage {
     // stage and set up active engine list for flameout checks
     // (makes looping through engines that much quicker)
-    print "Staging.".
-    STAGE.
+    parameter really_do_stage is true.
+    if really_do_stage {
+      print "Staging.".
+      STAGE.
+    }
     list engines in inactive.
     set active to list().
     FROM {set i to 0.} UNTIL i = inactive:length STEP {set i to i+1.} DO {
@@ -14,7 +17,7 @@ function do_stage {
         if en:ignition {
             inactive:remove(i).
             set i to i-1.
-            active:add(e).
+            active:add(en).
         }
     }
 }
@@ -34,8 +37,8 @@ function auto_stage {
     parameter launch is false.
     if launch {
       print "Launch!".
-      do_stage().
     }
+    do_stage(launch).
     lock staging to check_stage().
     when staging then {
         do_stage.

@@ -62,6 +62,33 @@ function draw_ship_at {
     draw_line(pos_func, normal_at_ut, purple, "normal").
     draw_line(pos_func, radial_at_ut, blue, "radial").
 }
+function draw_line_to {
+  parameter pos,
+            line,
+            color is red,
+            text is "line".
+
+  local line_normalized is 0.
+  if line:isType("UserDelegate")
+    set line_normalized to {return line:call():normalized*line_length.}.
+  else
+    set line_normalized to line:normalized*line_length.
+
+  local adjusted_pos is 0.
+  if pos:istype("UserDelegate") {
+    if line:isType("UserDelegate")
+      set adjusted_pos to {return pos:call() - line_normalized:call().}.
+    else
+      set adjusted_pos to {return pos:call() - line_normalized.}.
+  }
+  else {
+    if line:isType("UserDelegate")
+      set adjusted_pos to {return pos - line_normalized:call().}.
+    else
+      set adjusted_pos to pos - line_normalized.
+  }
+  draw_line(adjusted_pos, line_normalized, color, text).
+}
 
 function draw_line {
     //normalizes and extends to LINE_LENGTH the given line.

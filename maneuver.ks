@@ -1,6 +1,7 @@
 //maneuver.
 //perform the next maneuver node.
 // requires a node set or will crash
+parameter do_warp is false.
 
 run once engine_utils.
 
@@ -22,11 +23,11 @@ set fuel_burned to burn_mass(nd:deltav:mag) * 90.
 if fuel_burned > ship:liquidfuel {
 
     print "Insufficient fuel to complete burn. Aborting".
-    
+
     set done to true.
     SET MANEUVER_FAILED TO TRUE.
-    
-} 
+
+}
 
 else {
 
@@ -43,8 +44,10 @@ else {
     set half_burn to burn_time(nd:deltav:mag/2).
 
     print "Tsiolkovsky-calculated burn duration: " + round(total_burn) + "s".
-
-    warp_until(time:seconds + nd:eta - (half_burn + 60)).
+    if (do_warp) {
+      warp_until(time:seconds + nd:eta - (half_burn + 60)).
+    }
+    wait until time:seconds + nd:eta - (half_burn + 60).
 
     set np to nd:deltav:direction. //points to node, don't care about the roll direction.
     sas off.
@@ -53,8 +56,8 @@ else {
     //now we need to wait until the burn vector and ship's facing are aligned
     wait until abs(np:pitch - facing:pitch) < 0.15 and abs(np:yaw - facing:yaw) < 0.15.
     //the ship is facing the right direction, let's wait for our burn time
-
-    warp_until(time:seconds + nd:eta - half_burn ).
+    if (do_warp)
+      warp_until(time:seconds + nd:eta - half_burn ).
     wait until nd:eta <= half_burn.
 
     //initial deltav
@@ -69,7 +72,7 @@ else {
 
     {
 
-        if stage:liquidfuel = 0 { 
+        if stage:liquidfuel = 0 {
             set done TO true.
             SET MANEUVER_FAILED TO TRUE.
             }
@@ -131,13 +134,13 @@ else {
             }
         }
     }
+  }
 
-    unlock steering.
-    sas on.
-    unlock throttle.
-    //set throttle to 0 just in case.
-    SET SHIP:CONTROL:PILOTMAINTHROTTLE TO 0.
-    //we no longer need the maneuver node
-    remove nd.
-    wait 1.
-}
+  unlock steering.
+  sas on.
+  unlock throttle.
+  //set throttle to 0 just in case.
+  SET SHIP:CONTROL:PILOTMAINTHROTTLE TO 0.
+  //we no longer need the maneuver node
+  remove nd.
+  wait 1.

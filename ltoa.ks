@@ -1,6 +1,6 @@
 // launch to orbit (w/ atmosphere)
 
-clearscreen. 
+clearscreen.
 // gravity turn parameters.
 set gt0 to 1000.
 set theta0 to 0.
@@ -14,26 +14,26 @@ bodyprops().
 
 print "Launch program start at: " + time:calendar + ", " + time:clock.
 set tset to 1.
-lock throttle to tset. 
+lock throttle to tset.
 lock steering to up + R(0, 0, -180).
-print "T-1  All systems GO. Ignition!". 
+print "T-1  All systems GO. Ignition!".
 set ralt to alt:radar + 15.          // ramp altitude
 when alt:radar > ralt then {
     output(" Liftoff.").
 }
 wait 1.
 output(" Ignition.").
-auto_stage(). 
+auto_stage(true). 
 
 
 when alt:radar > gt0 then {
-    output(" Beginning gravity turn."). 
+    output(" Beginning gravity turn.").
 }
 
 // control speed and attitude
 set vt to 200.
-when alt:radar > 5000 then { 
-    set vt to 350. 
+when alt:radar > 5000 then {
+    set vt to 350.
     when alt:radar > 13000 then { set vt to 2500. }
 }
 until altitude > ha or apoapsis > lorb {
@@ -86,5 +86,3 @@ lock face to R(-90,0,0).
 steer(face).
 output(" Configuring for orbit...").
 ag2 on.     // extend antenna
-
-
